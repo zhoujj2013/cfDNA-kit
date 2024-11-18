@@ -1,15 +1,29 @@
 import os
 import csv
 import yaml
+import argparse
 
+parse = argparse.ArgumentParser()
+parse.add_argument('-sample_file',type=str)
+parse.add_argument('-save_dir',type=str)
+parse.add_argument('-tmp_dir',type=str)
+parse.add_argument('-shell_path',type=str)
+parse.add_argument('-config',type=str)
+parse.add_argument('-thread',type=int)
+args = parse.parse_args()
+sample_file = args.sample_file
+save_dir = args.save_dir
+tmp_dir = args.tmp_dir
+shell_path = args.shell_path
+config = args.config
+thread = args.thread
 
-
-sample_file = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/sample.lst'
-save_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test'
-tmp_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/temp'
-shell_path = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/shell'
-config = '/mnt/dfc_data2/project/linyusen/project/cfdna_r_github/config/config.yaml'
-thread = 70
+# sample_file = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/sample.lst'
+# save_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test'
+# tmp_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/temp'
+# shell_path = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/newdata/plasma_100_test/shell'
+# config = '/mnt/dfc_data2/project/linyusen/project/cfdna_r_github/config/config.yaml'
+# thread = 70
 
 
 with open(file=config, mode="r",encoding='utf-8') as f:
@@ -66,14 +80,6 @@ if os.path.exists(summary_path) == False:
 
 cmd = f'{python38_software} {summary_script} -single_cell_matrix {scdata_path} -data_path {preprocess_path} -save_path {summary_path}\n'
 f_shell.write(cmd)
-
-
-figure_savepath = os.path.join(out_dir,'figure_ratio')
-gene_intensity_ratio_path = os.path.join(summary_path,'gene_intensity_ratio.pkl')
-patient_cell_corelation_ratio_path = os.path.join(summary_path,'patient_cell_corelation_ratio.pkl')
-cmd = f'{python38_software} {figure_script} -gene_intensity_path {gene_intensity_ratio_path} -patient_cell_corelation_path {patient_cell_corelation_ratio_path} -single_cell_expression {scdata_path} -sample_file {sample_file} -save_path {figure_savepath}\n'
-f_shell.write(cmd)
-
 
 figure_savepath = os.path.join(out_dir,'figure_198')
 gene_intensity_198_path = os.path.join(summary_path,'gene_intensity_198.pkl')

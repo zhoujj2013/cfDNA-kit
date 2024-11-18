@@ -1,0 +1,50 @@
+#sample
+SAMPLE	./samples.lst
+OUTDIR	./
+
+# parameter
+MAXINS	1000
+MINLEN	30
+READLEN	50
+
+THREAD	16
+ADAPTER	/mnt/dfc_data1/home/zhoujj/project/04TP/cfdna_mNGS/bin/adapters.txt
+
+# program
+BIN	/mnt/dfc_data1/home/zhoujj/project/04TP/cfdna_mNGS/bin
+FASTQC	/mnt/dfc_data1/home/zhoujj/software/FastQC/fastqc
+BWA	/mnt/dfc_data1/home/lixuefei/Pipeline/Exon/Software/bwa
+SAMTOOLS	/mnt/dfc_data1/home/lixuefei/Pipeline/Exon/Software/samtools
+BEDTOOLS	/mnt/dfc_data1/home/zhoujj/anaconda2/bin/bedtools
+AdapterRemoval	/mnt/dfc_data1/home/zhoujj/software/adapterremoval/build/AdapterRemoval
+GATK	/mnt/dfc_data1/home/zhoujj/software/gatk-4.2.2.0/gatk
+kraken2	/mnt/dfc_data1/software/anaconda2/envs/kraken2-2.1.1/bin/kraken2
+
+#STAR	/home/zhoujj/software/STAR/bin/Linux_x86_64_static/STAR
+#MACS	/usr/bin/macs2
+#PICARD	/home/zhoujj/software/picard.jar
+#HOMER	/home/zhoujj/software/homer/bin
+
+# database
+#for BWA
+# the ref. genome be filtered.
+SPE	human
+INDEX	/mnt/dfc_data1/home/lixuefei/Pipeline/Exon/Database/hg19/ucsc.hg19.fasta
+CHROMSIZE	/mnt/dfc_data1/home/zhoujj/data/hg19/hg19.chrom.sizes
+
+# for kraken
+kdb	k2_standard
+
+# for STAR
+#GTF	/home/zhoujj/data/hg19/hg19/refGene.gtf
+#SPE	human
+#INDEX	/home/zhoujj/data/hg19/star_index
+#CHROMSIZE	/home/zhoujj/data/hg19/hg19.chrom.sizes
+
+#SPE	mouse
+#INDEX	/x400ifs-accel/zhoujj/data/mm9/Bowtie2Index/mm9
+#HEADER	/x400ifs-accel/zhoujj/data/mm9/mm9_chr.sam.header.chrM
+
+#SPE human
+#INDEX	/x400ifs-accel/zhoujj/data/hg19/Bowtie2Index/genome
+#HEADER	/x400ifs-accel/zhoujj/data/hg19/hg19_sam_header.txt
