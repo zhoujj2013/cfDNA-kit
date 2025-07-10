@@ -1,0 +1,13 @@
+# modify such software path
+fft_script : './utility/fft_path.R'
+wps_script : './utility/extractReadStartsFromBAM_Region_WPS.py'
+concatfft : './utility/concat_fft.py'
+concatwps : './utility/concat_wps.py'
+cfdna_analyse_script : './utility/cfdna_analyse.py'
+figure_script : './utility/utility/figure.py'
+summary_script : './utility/utility/summary.py'
+scdata_path : './database/single_cell.expression.csv'
+bed_file : './database/hg38.tss.10000.bed'
+rscript_software : '/mnt/dfc_data1/home/linyusen/miniconda3/envs/cfdna/bin/Rscript'
+python27_software : '/mnt/dfc_data1/home/linyusen/miniconda3/envs/cfdna/bin/python'
+python38_software : '/mnt/dfc_data1/home/linyusen/miniconda3/envs/lys/bin/python'
