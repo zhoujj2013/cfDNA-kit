@@ -1,12 +1,15 @@
 import pysam
 import numpy as np
+import argparse
+import csv
 
-def ndr_signal(sf:pysam.AlignmentFile,chrid,tss_start):
+def ndr_signal(sf,chrid,start,end):
     # sf = pysam.AlignmentFile(bam_file, "rb")
     binedges = range(-1000, 1000, 5)
-    tss = tss_start  # TSS 位置（start）
-    s = tss - 1000
-    e = tss + 1000
+    s = start
+    e = end
+    tss = int((start+end)/2)
+    tss_start = tss
 
     pos = []
     iter = sf.fetch(chrid, s, e)  # 提取该区域的配对 reads
@@ -94,3 +97,44 @@ def ndr_signal(sf:pysam.AlignmentFile,chrid,tss_start):
     updownMean = (upMean + downMean) / 2  # 上下游平均深度
     vectt_pos = [float(depth / updownMean) for depth in vect_pos[0]]  # 归一化
     return vectt_pos
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--bed_file', type=str, required=True,
+                        help='Path to the BED file defining target gene regions (e.g., upstream promoters)')
+    parser.add_argument('--bam_file', type=str, required=True,
+                        help='Path to the cfDNA aligned BAM file')
+    parser.add_argument('--o', type=str, required=True,
+                        help='Output path for the resulting (TSV format)')
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    bed_file = args.bed_file
+    bam_file = args.bam_file
+    tsv_file = args.o
+    sf = pysam.AlignmentFile(bam_file)
+    f = open(bed_file)
+
+    lines = f.readlines()
+    f.close()
+    tsv_data = []
+    for line in lines:
+        tsv_data.append(line[:-1].split('\t'))
+
+    wps_data = {}
+    for chrid, start, end, gene, _ in tsv_data[:]:
+        wps_data[gene] = ndr_signal(sf, chrid, int(start), int(end))
+    # 找到最长的 WPS 数组长度（用于填充）
+    max_len = max(len(values) for values in wps_data.values())
+    # 保存为 CSV 文件
+    with open(tsv_file, mode='w', newline='') as file:
+        writer = csv.writer(file, delimiter='\t')
+        # 写表头：第一个是 gene 名，后面是每个位置的索引
+        header = ['gene'] + [f'{i}' for i in range(max_len)]
+        writer.writerow(header)
+        # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
+        for gene, values in wps_data.items():
+            row = [gene] + list(values) + [''] * (max_len - len(values))
+            writer.writerow(row)
