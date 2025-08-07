@@ -1,6 +1,8 @@
 import pysam
 import numpy as np
 from scipy.stats import entropy
+import argparse
+import csv
 
 def extract_fragment_lengths(bamfile, chrom, start, end):
     """Extract fragment lengths from properly paired reads within region."""
@@ -30,9 +32,7 @@ def compute_entropy(lengths, bins):
     hist, _ = np.histogram(filtered_lengths, bins=bins)
     probs = hist / np.sum(hist)
     return entropy(probs)
-
-
-def pfe_signal(sf:pysam.AlignmentFile, windows, chrid, start, end):
+def pfe_signal(sf, windows, chrid, start, end):
     # bamfile = pysam.AlignmentFile(bam_file, "rb")
     regions = split_region(start,end,windows)
     bins = list(range(50, 400, 50))
@@ -42,3 +42,46 @@ def pfe_signal(sf:pysam.AlignmentFile, windows, chrid, start, end):
         entropy_val = compute_entropy(lengths,bins)
         entropy_vals.append(entropy_val)
     return entropy_vals
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--bed_file', type=str, required=True,
+                        help='Path to the BED file defining target gene regions (e.g., upstream promoters)')
+    parser.add_argument('--bam_file', type=str, required=True,
+                        help='Path to the cfDNA aligned BAM file')
+    parser.add_argument('--o', type=str, required=True,
+                        help='Output path for the resulting (TSV format)')
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    bed_file = args.bed_file
+    bam_file = args.bam_file
+    tsv_file = args.o
+    windows = 1000
+    sf = pysam.AlignmentFile(bam_file)
+    f = open(bed_file)
+
+    lines = f.readlines()
+    f.close()
+    tsv_data = []
+    for line in lines:
+        tsv_data.append(line[:-1].split('\t'))
+
+    wps_data = {}
+    for chrid, start, end, gene, _ in tsv_data[:]:
+        wps_data[gene] = pfe_signal(sf, windows, chrid, int(start), int(end))
+    # 找到最长的 WPS 数组长度（用于填充）
+    max_len = max(len(values) for values in wps_data.values())
+    # 保存为 CSV 文件
+    with open(tsv_file, mode='w', newline='') as file:
+        writer = csv.writer(file, delimiter='\t')
+        # 写表头：第一个是 gene 名，后面是每个位置的索引
+        header = ['gene'] + [f'{i}' for i in range(max_len)]
+        writer.writerow(header)
+        # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
+        for gene, values in wps_data.items():
+            row = [gene] + list(values) + [''] * (max_len - len(values))
+            writer.writerow(row)
