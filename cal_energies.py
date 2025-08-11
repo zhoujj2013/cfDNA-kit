@@ -169,17 +169,15 @@ windows = args.windows
 
 gene_info = {}
 f = open(gene_region_file)
-for line in f.readlines():
-    line = line.split(' ')
+r = csv.reader(f,delimiter='\t')
+for line in r:
+    print(line)
     chrid = line[0]
     start = int(line[1])
     end = int(line[2])
-    gene = line[-1][:-1]
-    dir = line[3]
-    if dir == '-':
-        gene_info[gene] = [chrid,end-5000,end+5000]
-    if dir == '+':
-        gene_info[gene] = [chrid,start-5000,start+5000]
+    gene = line[3]
+    dir = line[4]
+    gene_info[gene] = [chrid,start,end]
 
 
 fs = 1000
@@ -208,3 +206,4 @@ for gene in tqdm(gene_info):
 
 energies_pd = pd.DataFrame(energies_dict).T
 energies_pd.to_csv(save_path)
+
