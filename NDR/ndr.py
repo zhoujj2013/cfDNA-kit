@@ -101,7 +101,7 @@ def ndr_signal(sf,chrid,start,end):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bed_file', type=str, required=True,
-                        help='Path to the BED file defining target gene regions (e.g., upstream promoters)')
+                        help='Path to the BED file defining target gene regions (e.g., upstream promoters), only support -1k, +1k regions')
     parser.add_argument('--bam_file', type=str, required=True,
                         help='Path to the cfDNA aligned BAM file')
     parser.add_argument('--o', type=str, required=True,
@@ -137,4 +137,5 @@ if __name__ == "__main__":
         # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
         for gene, values in wps_data.items():
             row = [gene] + list(values) + [''] * (max_len - len(values))
+
             writer.writerow(row)
