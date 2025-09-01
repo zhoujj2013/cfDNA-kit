@@ -71,7 +71,8 @@ if __name__ == "__main__":
         tsv_data.append(line[:-1].split('\t'))
 
     wps_data = {}
-    for chrid, start, end, gene in tsv_data[:4]:
+    for data_tsv in tsv_data:
+        chrid, start, end, gene = data_tsv[:4]
         wps_data[gene] = pfe_signal(sf, windows, chrid, int(start), int(end))
     # 找到最长的 WPS 数组长度（用于填充）
     max_len = max(len(values) for values in wps_data.values())
@@ -86,3 +87,4 @@ if __name__ == "__main__":
             row = [gene] + list(values) + [''] * (max_len - len(values))
 
             writer.writerow(row)
+
