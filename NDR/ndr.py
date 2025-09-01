@@ -123,12 +123,12 @@ if __name__ == "__main__":
     for line in lines:
         tsv_data.append(line[:-1].split('\t'))
 
-    wps_data = {}
+    ndr_data = {}
     for data_tsv in tsv_data:
         chrid, start, end, gene = data_tsv[:4]
-        wps_data[gene] = ndr_signal(sf, chrid, int(start), int(end))
+        ndr_data[gene] = ndr_signal(sf, chrid, int(start), int(end))
     # 找到最长的 WPS 数组长度（用于填充）
-    max_len = max(len(values) for values in wps_data.values())
+    max_len = max(len(values) for values in ndr_data.values())
     # 保存为 CSV 文件
     with open(tsv_file, mode='w', newline='') as file:
         writer = csv.writer(file, delimiter='\t')
@@ -136,9 +136,10 @@ if __name__ == "__main__":
         header = ['gene'] + [f'{i}' for i in range(max_len)]
         writer.writerow(header)
         # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
-        for gene, values in wps_data.items():
+        for gene, values in ndr_data.items():
             row = [gene] + list(values) + [''] * (max_len - len(values))
 
             writer.writerow(row)
+
 
 
