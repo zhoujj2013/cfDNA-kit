@@ -116,7 +116,7 @@ if __name__ == "__main__":
         tsv_data.append(line[:-1].split('\t'))
 
     wps_data = {}
-    for chrid, start, end, gene, _ in tsv_data[:]:
+    for chrid, start, end, gene in tsv_data[:4]:
         wps_data[gene],_ = wps_signal(sf,windows,chrid,int(start),int(end))
         print(wps_data[gene])
 
@@ -131,4 +131,5 @@ if __name__ == "__main__":
         # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
         for gene, values in wps_data.items():
             row = [gene] + list(values) + [''] * (max_len - len(values))
+
             writer.writerow(row)
