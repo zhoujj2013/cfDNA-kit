@@ -52,7 +52,7 @@ def parse_args():
                         help='Path to the cfDNA aligned BAM file')
     parser.add_argument('--o', type=str, required=True,
                         help='Output path for the resulting (TSV format)')
-    parser.add_argument('--w', type=str, required=True,
+    parser.add_argument('--w', type=int, required=True,
                         help='Selcet window size to split region')
     return parser.parse_args()
 
@@ -90,3 +90,4 @@ if __name__ == "__main__":
         for gene, values in wps_data.items():
             row = [gene] + list(values) + [''] * (max_len - len(values))
             writer.writerow(row)
+
