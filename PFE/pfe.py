@@ -28,7 +28,7 @@ def compute_entropy(lengths, bins):
     """Compute histogram and entropy of fragment length distribution."""
     filtered_lengths = [l for l in lengths if 50 <= l <= 400]
     if len(filtered_lengths) < 20:
-        return None  # too few fragments
+        return -1  # too few fragments
     hist, _ = np.histogram(filtered_lengths, bins=bins)
     probs = hist / np.sum(hist)
     return entropy(probs)
@@ -52,6 +52,8 @@ def parse_args():
                         help='Path to the cfDNA aligned BAM file')
     parser.add_argument('--o', type=str, required=True,
                         help='Output path for the resulting (TSV format)')
+    parser.add_argument('--w', type=str, required=True,
+                        help='Selcet window size to split region')
     return parser.parse_args()
 
 
@@ -60,7 +62,8 @@ if __name__ == "__main__":
     bed_file = args.bed_file
     bam_file = args.bam_file
     tsv_file = args.o
-    windows = 1000
+    windows = args.w
+
     sf = pysam.AlignmentFile(bam_file)
     f = open(bed_file)
 
@@ -70,12 +73,13 @@ if __name__ == "__main__":
     for line in lines:
         tsv_data.append(line[:-1].split('\t'))
 
-    pfe_data = {}
+    wps_data = {}
+
     for data_tsv in tsv_data:
         chrid, start, end, gene = data_tsv[:4]
-        pfe_data[gene] = pfe_signal(sf, windows, chrid, int(start), int(end))
+        wps_data[gene] = pfe_signal(sf, windows, chrid, int(start), int(end))
     # 找到最长的 WPS 数组长度（用于填充）
-    max_len = max(len(values) for values in pfe_data.values())
+    max_len = max(len(values) for values in wps_data.values())
     # 保存为 CSV 文件
     with open(tsv_file, mode='w', newline='') as file:
         writer = csv.writer(file, delimiter='\t')
@@ -83,9 +87,6 @@ if __name__ == "__main__":
         header = ['gene'] + [f'{i}' for i in range(max_len)]
         writer.writerow(header)
         # 写入每一行基因和对应的 WPS 值（不足部分填充为空）
-        for gene, values in pfe_data.items():
+        for gene, values in wps_data.items():
             row = [gene] + list(values) + [''] * (max_len - len(values))
-
             writer.writerow(row)
-
-
