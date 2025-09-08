@@ -9,6 +9,7 @@ import pandas as pd
 import argparse
 
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="""
 cfDNA Signal Energy Analysis Module:
@@ -206,4 +207,5 @@ for gene in tqdm(gene_info):
 
 energies_pd = pd.DataFrame(energies_dict).T
 energies_pd.to_csv(save_path)
+
 
