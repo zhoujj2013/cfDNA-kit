@@ -36,6 +36,7 @@ def parse_args():
 
 args = parse_args()
 bed_file = args.bed_file
+
 bam_file = args.bam_file
 save_path = args.save_path
 
@@ -167,9 +168,9 @@ order = 5  # 滤波器阶数
 b, a = signal.butter(order, cutoff_frequency, fs=fs, btype='low')
 
 js_distance_high = []
-f1 = open(os.path.join(save_path,'hk_gene.entropy.tsv'),'w')
+f1 = open(os.path.join(save_path,'hk_gene.js_distance.tsv'),'w')
 w1 = csv.writer(f1,delimiter='\t')
-w1.writerow(['gene','peak_entropy_value','bottom_entropy_value','nucleu_entropy_value'])
+w1.writerow(['gene','js_distance_nucleu_loc' , 'js_distance_peak_distance_value' , 'js_distance_peak_bottom_distance_value' , 'js_slope_up' , 'js_slope_down'])
 f2 = open(os.path.join(save_path,'hk_gene.peak.tsv'),'w')
 w2 = csv.writer(f2,delimiter='\t')
 w2.writerow(['gene','q1','q3'])
@@ -208,6 +209,7 @@ for gene in tqdm(signal_dict):
     filtered_signal = filtered_signal - np.mean(filtered_signal)
     q1 = np.percentile(filtered_signal, 25)  # 25% 分位
     q3 = np.percentile(filtered_signal, 75)  # 75% 分位
+    w_js_distance = []
     w_nucleu_loc = [gene]
     w_peak_value = [gene, q1, q3]
     w_bottom_value = [gene, q1, q3]
@@ -355,6 +357,12 @@ for gene in tqdm(signal_dict):
     js_k2 = js_distance_from_samples(k2_list, reference_k2_list)
     js_distance = js_distance_nucleu_loc + js_distance_peak_distance_value + js_distance_peak_bottom_distance_value + js_k1 + js_k2
     js_distance_high.append(js_distance)
+    w_js_distance.append(js_distance_nucleu_loc)
+    w_js_distance.append(js_distance_peak_distance_value)
+    w_js_distance.append(js_distance_peak_bottom_distance_value)
+    w_js_distance.append(js_k1)
+    w_js_distance.append(js_k2)
+    w1.writerow(w_js_distance)
     w2.writerow(w_peak_value)
     w3.writerow(w_bottom_value)
     w4.writerow(w_nucleu_loc)
