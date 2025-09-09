@@ -40,6 +40,7 @@ bed_file = args.bed_file
 bam_file = args.bam_file
 save_path = args.save_path
 
+os.makedirs(save_path, exist_ok=True)
 # bed_file = '/mnt/dfc_data2/project/zhoujj/project/35cfdna/04PanCancer/ref/gencode.v45.annotation.tss.b5k.bed'
 # bam_file = '/mnt/dfc_data2/project/zhoujj/project/ngs.data/20250731.CNGB.JWZ.cfDNA.collected/PDAC/standard/PL230613013/01alignment/PL230613013.sorted.rmdup.bam'
 # save_path = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/'
