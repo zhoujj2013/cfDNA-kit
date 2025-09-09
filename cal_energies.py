@@ -7,7 +7,7 @@ import pywt
 import pickle
 import pandas as pd
 import argparse
-
+import csv
 
 
 def parse_args():
@@ -133,7 +133,6 @@ def nlms(input_signal,noisy_signal,filter_order=80,mu = 0.8,eps = 0.001 ):
     e = np.zeros(n_samples)
     # 输入参考信号：延迟后的 noisy_signal（仿真实际中参考通道）
     x = np.concatenate((np.zeros(filter_order), input_signal))
-
     # NLMS 自适应滤波过程
     for n in range(n_samples):
         x_n = x[n + filter_order - 1 : n + -1 : -1]  # x[n], x[n-1], ..., x[n-L+1]
@@ -172,7 +171,6 @@ gene_info = {}
 f = open(gene_region_file)
 r = csv.reader(f,delimiter='\t')
 for line in r:
-    print(line)
     chrid = line[0]
     start = int(line[1])
     end = int(line[2])
@@ -198,6 +196,9 @@ for gene in tqdm(gene_info):
     ref_wps_arr = signal.filtfilt(b, a, ref_wps_arr)
     signal_arr, wps_arr_x = wps_signal(bam_file, 120, chrid, start, end)
     signal_arr = signal.filtfilt(b, a, signal_arr)
+    mini_length = min([len(ref_wps_arr), len(signal_arr)])
+    ref_wps_arr = ref_wps_arr[:mini_length]
+    signal_arr = signal_arr[:mini_length]
     filter_signal, filter_error = nlms(signal_arr, ref_wps_arr, filter_order=80, mu=0.01, eps=0.1) # Use Normalized Least Mean Squares (NLMS) adaptive filter to extract differential signal
     coeffs = pywt.wavedec(filter_error, 'db4', level=3) # Perform 3-level discrete wavelet transform (DWT) on the residual error signal
     energies = [np.sum(np.square(c)) for c in coeffs] # Calculate energy at each decomposition level (sum of squared coefficients)
@@ -207,5 +208,4 @@ for gene in tqdm(gene_info):
 
 energies_pd = pd.DataFrame(energies_dict).T
 energies_pd.to_csv(save_path)
-
 
