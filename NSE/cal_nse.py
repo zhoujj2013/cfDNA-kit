@@ -184,190 +184,193 @@ w5 = csv.writer(f5,delimiter='\t')
 f6 = open(os.path.join(save_path,'hk_gene.nuclusome_distance.tsv'),'w')
 w6 = csv.writer(f6,delimiter='\t')
 for gene in tqdm(signal_dict):
-    nucleu_loc = []
-    peak_value = []
-    bottom_value = []
-    peak_distance = []
-    peak_bottom_value = []
-    peak_loc = []
-    bottom_loc = []
-    k1_list = []
-    k2_list = []
-    reference_peak_value = []
-    reference_bottom_value = []
-    reference_nucleu_loc = []
-    reference_peak_distance = []
-    reference_peak_bottom_value = []
-    reference_k1_list = []
-    reference_k2_list = []
+    try:
+        nucleu_loc = []
+        peak_value = []
+        bottom_value = []
+        peak_distance = []
+        peak_bottom_value = []
+        peak_loc = []
+        bottom_loc = []
+        k1_list = []
+        k2_list = []
+        reference_peak_value = []
+        reference_bottom_value = []
+        reference_nucleu_loc = []
+        reference_peak_distance = []
+        reference_peak_bottom_value = []
+        reference_k1_list = []
+        reference_k2_list = []
 
-    wps_arr = []
-    for pos in signal_dict[gene]:
-        wps_arr = signal_dict[gene]
-    wps_arr = np.array(wps_arr)
-    filtered_signal = signal.filtfilt(b, a, wps_arr)
-    filtered_signal = filtered_signal - np.mean(filtered_signal)
-    q1 = np.percentile(filtered_signal, 25)  # 25% 分位
-    q3 = np.percentile(filtered_signal, 75)  # 75% 分位
-    w_js_distance = []
-    w_nucleu_loc = [gene]
-    w_peak_value = [gene, q1, q3]
-    w_bottom_value = [gene, q1, q3]
-    w_peak_bottom_value = [gene]
-    w_peak_distance = [gene]
-    peaks, _ = find_peaks(filtered_signal)
-    inverted_peaks, _ = find_peaks(-filtered_signal)
-    nucleusome_loc = []
-    for peak in peaks:
-        minima_before = inverted_peaks[inverted_peaks < peak]
-        minima_after = inverted_peaks[inverted_peaks > peak]
-        if len(minima_before) > 0 and len(minima_after) > 0:
-            min_before = minima_before[-1]
-            min_after = minima_after[0]
-            if abs(filtered_signal[min_after] - filtered_signal[peak]) < 3 or abs(
-                    filtered_signal[min_before] - filtered_signal[peak]) < 3:
-                continue
-            segment = filtered_signal[min_before:min_after]
-            temp = np.where(segment > np.percentile(segment, 75))[0]
-            min_x = temp[0]
-            max_x = temp[-1]
-            tempx = []
-            tempy = []
-            for iii in range(min_before + min_x, min_before + max_x):
-                tempx.append(iii)
-                tempy.append(1)
-            nucleusome_loc.append(int(np.mean(tempx)))
-            peak_value.append(filtered_signal[peak])
-            peak_loc.append(peak)
-            bottom_value.append(filtered_signal[min_before])
-            bottom_loc.append(min_before)
-    dream_loc = [nucleusome_loc[0]]
-    w_nucleu_loc.append(1)
-    nucleu_loc.append(1)
-    nucleusome_loc_index = 1
-    while True:
-        if nucleusome_loc_index >= len(nucleusome_loc) or np.mean(dream_loc[-1]) > np.mean(nucleusome_loc[-1]):
-            break
-        tempx = nucleusome_loc[nucleusome_loc_index]
-        last_x = dream_loc[-1]
-        now_x = tempx
-        if now_x - last_x < 334:
-            dream_loc.append(now_x)
-            nucleusome_loc_index += 1
-            nucleu_loc.append(1)
-            w_nucleu_loc.append(1)
-        else:
-            now_x = last_x + 168
-            dream_loc.append(now_x)
-            nucleu_loc.append(0)
-            w_nucleu_loc.append(0)
-    while True:
-        now_x = dream_loc[0]
-        if now_x - 0 > 178:
-            now_x = now_x - 168
-            dream_loc.insert(0, now_x)
-            w_nucleu_loc.insert(1, 0)
-            nucleu_loc.insert(0, 0)
-        else:
-            break
-    while True:
-        now_x = dream_loc[-1]
-        if len(wps_arr) - now_x > 178:
-            now_x = now_x + 168
-            dream_loc.append(now_x)
-            w_nucleu_loc.append(0)
-            nucleu_loc.append(0)
-        else:
-            break
-    for index,_ in enumerate(dream_loc):
-        if index+1 < len(dream_loc):
-            w_peak_value.append(filtered_signal[dream_loc[index]])
-            w_bottom_value.append(filtered_signal[int((dream_loc[index]+dream_loc[index+1])/2)])
-        else:
-            if int(dream_loc[index]+80) < len(dream_loc):
-                w_peak_value.append(filtered_signal[dream_loc[index]])
-                w_bottom_value.append(filtered_signal[int(dream_loc[index]+80)])
+        wps_arr = []
+        for pos in signal_dict[gene]:
+            wps_arr = signal_dict[gene]
+        wps_arr = np.array(wps_arr)
+        filtered_signal = signal.filtfilt(b, a, wps_arr)
+        filtered_signal = filtered_signal - np.mean(filtered_signal)
+        q1 = np.percentile(filtered_signal, 25)  # 25% 分位
+        q3 = np.percentile(filtered_signal, 75)  # 75% 分位
+        w_js_distance = []
+        w_nucleu_loc = [gene]
+        w_peak_value = [gene, q1, q3]
+        w_bottom_value = [gene, q1, q3]
+        w_peak_bottom_value = [gene]
+        w_peak_distance = [gene]
+        peaks, _ = find_peaks(filtered_signal)
+        inverted_peaks, _ = find_peaks(-filtered_signal)
+        nucleusome_loc = []
+        for peak in peaks:
+            minima_before = inverted_peaks[inverted_peaks < peak]
+            minima_after = inverted_peaks[inverted_peaks > peak]
+            if len(minima_before) > 0 and len(minima_after) > 0:
+                min_before = minima_before[-1]
+                min_after = minima_after[0]
+                if abs(filtered_signal[min_after] - filtered_signal[peak]) < 3 or abs(
+                        filtered_signal[min_before] - filtered_signal[peak]) < 3:
+                    continue
+                segment = filtered_signal[min_before:min_after]
+                temp = np.where(segment > np.percentile(segment, 75))[0]
+                min_x = temp[0]
+                max_x = temp[-1]
+                tempx = []
+                tempy = []
+                for iii in range(min_before + min_x, min_before + max_x):
+                    tempx.append(iii)
+                    tempy.append(1)
+                nucleusome_loc.append(int(np.mean(tempx)))
+                peak_value.append(filtered_signal[peak])
+                peak_loc.append(peak)
+                bottom_value.append(filtered_signal[min_before])
+                bottom_loc.append(min_before)
+        dream_loc = [nucleusome_loc[0]]
+        w_nucleu_loc.append(1)
+        nucleu_loc.append(1)
+        nucleusome_loc_index = 1
+        while True:
+            if nucleusome_loc_index >= len(nucleusome_loc) or np.mean(dream_loc[-1]) > np.mean(nucleusome_loc[-1]):
+                break
+            tempx = nucleusome_loc[nucleusome_loc_index]
+            last_x = dream_loc[-1]
+            now_x = tempx
+            if now_x - last_x < 334:
+                dream_loc.append(now_x)
+                nucleusome_loc_index += 1
+                nucleu_loc.append(1)
+                w_nucleu_loc.append(1)
             else:
-                w_peak_value.append(filtered_signal[dream_loc[index]])
-                w_bottom_value.append(filtered_signal[-1])
-        w_peak_bottom_value.append(w_peak_value[-1] - w_bottom_value[-1])
-        peak_bottom_value.append(w_peak_value[-1] - w_bottom_value[-1])
-    nucleusome_index= 0
-    next_loc = nucleusome_loc[nucleusome_index]
-    now_loc = dream_loc[0]
-    for next_nucleu_exist in nucleu_loc[1:]:
-        if next_nucleu_exist == 0:
-            w_peak_distance.append(next_loc-now_loc)
-            peak_distance.append(next_loc-now_loc)
-        else:
-            w_peak_distance.append(next_loc-now_loc)
-            peak_distance.append(next_loc - now_loc)
-            now_loc = nucleusome_loc[nucleusome_index]
-            nucleusome_index+=1
-            if nucleusome_index >= len(nucleusome_loc):
-                next_loc = nucleusome_loc[-1]
+                now_x = last_x + 168
+                dream_loc.append(now_x)
+                nucleu_loc.append(0)
+                w_nucleu_loc.append(0)
+        while True:
+            now_x = dream_loc[0]
+            if now_x - 0 > 178:
+                now_x = now_x - 168
+                dream_loc.insert(0, now_x)
+                w_nucleu_loc.insert(1, 0)
+                nucleu_loc.insert(0, 0)
             else:
-                next_loc = nucleusome_loc[nucleusome_index]
-    peak_bottom_value = [abs(x) for x in peak_bottom_value]
-    peak_distance = [abs(x) for x in peak_distance]
-    for i in range(len(nucleu_loc)):
-        reference_nucleu_loc.append(1)
-    for i in range(len(peak_distance)):
-        reference_peak_distance.append(np.mean(peak_distance))
-    for i in range(len(peak_bottom_value)):
-        reference_peak_bottom_value.append(np.mean(peak_bottom_value))
-    for loc1,loc2 in zip(peak_loc,bottom_loc):
-        high = filtered_signal[loc1] - filtered_signal[loc2]
-        k1 = high/(loc1-loc2)
-        k1_list.append(abs(k1))
-    for loc1, loc2 in zip(peak_loc[:-2], bottom_loc[1:]):
-        high = filtered_signal[loc1] - filtered_signal[loc2]
-        k2 = high / (loc1 - loc2)
-        k2_list.append(abs(k2))
-    for k in k1_list:
-        reference_k1_list.append(np.mean(k1_list))
-    for k in k2_list:
-        reference_k2_list.append(np.mean(k2_list))
-    if len(w_nucleu_loc[1:]) < 45:
+                break
+        while True:
+            now_x = dream_loc[-1]
+            if len(wps_arr) - now_x > 178:
+                now_x = now_x + 168
+                dream_loc.append(now_x)
+                w_nucleu_loc.append(0)
+                nucleu_loc.append(0)
+            else:
+                break
+        for index,_ in enumerate(dream_loc):
+            if index+1 < len(dream_loc):
+                w_peak_value.append(filtered_signal[dream_loc[index]])
+                w_bottom_value.append(filtered_signal[int((dream_loc[index]+dream_loc[index+1])/2)])
+            else:
+                if int(dream_loc[index]+80) < len(dream_loc):
+                    w_peak_value.append(filtered_signal[dream_loc[index]])
+                    w_bottom_value.append(filtered_signal[int(dream_loc[index]+80)])
+                else:
+                    w_peak_value.append(filtered_signal[dream_loc[index]])
+                    w_bottom_value.append(filtered_signal[-1])
+            w_peak_bottom_value.append(w_peak_value[-1] - w_bottom_value[-1])
+            peak_bottom_value.append(w_peak_value[-1] - w_bottom_value[-1])
+        nucleusome_index= 0
+        next_loc = nucleusome_loc[nucleusome_index]
+        now_loc = dream_loc[0]
+        for next_nucleu_exist in nucleu_loc[1:]:
+            if next_nucleu_exist == 0:
+                w_peak_distance.append(next_loc-now_loc)
+                peak_distance.append(next_loc-now_loc)
+            else:
+                w_peak_distance.append(next_loc-now_loc)
+                peak_distance.append(next_loc - now_loc)
+                now_loc = nucleusome_loc[nucleusome_index]
+                nucleusome_index+=1
+                if nucleusome_index >= len(nucleusome_loc):
+                    next_loc = nucleusome_loc[-1]
+                else:
+                    next_loc = nucleusome_loc[nucleusome_index]
+        peak_bottom_value = [abs(x) for x in peak_bottom_value]
+        peak_distance = [abs(x) for x in peak_distance]
+        for i in range(len(nucleu_loc)):
+            reference_nucleu_loc.append(1)
+        for i in range(len(peak_distance)):
+            reference_peak_distance.append(np.mean(peak_distance))
+        for i in range(len(peak_bottom_value)):
+            reference_peak_bottom_value.append(np.mean(peak_bottom_value))
+        for loc1,loc2 in zip(peak_loc,bottom_loc):
+            high = filtered_signal[loc1] - filtered_signal[loc2]
+            k1 = high/(loc1-loc2)
+            k1_list.append(abs(k1))
+        for loc1, loc2 in zip(peak_loc[:-2], bottom_loc[1:]):
+            high = filtered_signal[loc1] - filtered_signal[loc2]
+            k2 = high / (loc1 - loc2)
+            k2_list.append(abs(k2))
+        for k in k1_list:
+            reference_k1_list.append(np.mean(k1_list))
+        for k in k2_list:
+            reference_k2_list.append(np.mean(k2_list))
+        if len(w_nucleu_loc[1:]) < 45:
+            continue
+        nucleu_loc = w_nucleu_loc[6:46]
+        reference_nucleu_loc = []
+        for i in range(len(nucleu_loc)):
+            reference_nucleu_loc.append(1)
+        if len(w_peak_bottom_value[1:]) < 45:
+            continue
+        peak_bottom_value = w_peak_bottom_value[6:46]
+        peak_bottom_value = [abs(i) for i in peak_bottom_value]
+        peak_bottom_value_mean = np.mean(np.array(peak_bottom_value))
+        reference_peak_bottom_value = []
+        for i in range(len(peak_bottom_value)):
+            reference_peak_bottom_value.append(peak_bottom_value_mean)
+        if len(w_peak_distance[1:]) < 45:
+            continue
+        peak_distance = w_peak_distance[6:46]
+        peak_distance = [abs(i) for i in peak_distance]
+        peak_distance_mean = np.mean(np.array(peak_distance))
+        reference_peak_distance = []
+        for i in range(len(peak_distance)):
+            reference_peak_distance.append(peak_distance_mean)
+        js_distance_nucleu_loc = js_distance_from_samples(nucleu_loc, reference_nucleu_loc)
+        js_distance_peak_distance_value = js_distance_from_samples(peak_distance, reference_peak_distance)
+        js_distance_peak_bottom_distance_value = js_distance_from_samples(peak_bottom_value, reference_peak_bottom_value)
+        js_k1 = js_distance_from_samples(k1_list, reference_k1_list)
+        js_k2 = js_distance_from_samples(k2_list, reference_k2_list)
+        js_distance = js_distance_nucleu_loc + js_distance_peak_distance_value + js_distance_peak_bottom_distance_value + js_k1 + js_k2
+        js_distance_high.append(js_distance)
+        w_js_distance.append(js_distance_nucleu_loc)
+        w_js_distance.append(js_distance_peak_distance_value)
+        w_js_distance.append(js_distance_peak_bottom_distance_value)
+        w_js_distance.append(js_k1)
+        w_js_distance.append(js_k2)
+        w1.writerow(w_js_distance)
+        w2.writerow(w_peak_value)
+        w3.writerow(w_bottom_value)
+        w4.writerow(w_nucleu_loc)
+        w5.writerow(w_peak_bottom_value)
+        w6.writerow(w_peak_distance)
+    except:
         continue
-    nucleu_loc = w_nucleu_loc[6:46]
-    reference_nucleu_loc = []
-    for i in range(len(nucleu_loc)):
-        reference_nucleu_loc.append(1)
-    if len(w_peak_bottom_value[1:]) < 45:
-        continue
-    peak_bottom_value = w_peak_bottom_value[6:46]
-    peak_bottom_value = [abs(i) for i in peak_bottom_value]
-    peak_bottom_value_mean = np.mean(np.array(peak_bottom_value))
-    reference_peak_bottom_value = []
-    for i in range(len(peak_bottom_value)):
-        reference_peak_bottom_value.append(peak_bottom_value_mean)
-    if len(w_peak_distance[1:]) < 45:
-        continue
-    peak_distance = w_peak_distance[6:46]
-    peak_distance = [abs(i) for i in peak_distance]
-    peak_distance_mean = np.mean(np.array(peak_distance))
-    reference_peak_distance = []
-    for i in range(len(peak_distance)):
-        reference_peak_distance.append(peak_distance_mean)
-    js_distance_nucleu_loc = js_distance_from_samples(nucleu_loc, reference_nucleu_loc)
-    js_distance_peak_distance_value = js_distance_from_samples(peak_distance, reference_peak_distance)
-    js_distance_peak_bottom_distance_value = js_distance_from_samples(peak_bottom_value, reference_peak_bottom_value)
-    js_k1 = js_distance_from_samples(k1_list, reference_k1_list)
-    js_k2 = js_distance_from_samples(k2_list, reference_k2_list)
-    js_distance = js_distance_nucleu_loc + js_distance_peak_distance_value + js_distance_peak_bottom_distance_value + js_k1 + js_k2
-    js_distance_high.append(js_distance)
-    w_js_distance.append(js_distance_nucleu_loc)
-    w_js_distance.append(js_distance_peak_distance_value)
-    w_js_distance.append(js_distance_peak_bottom_distance_value)
-    w_js_distance.append(js_k1)
-    w_js_distance.append(js_k2)
-    w1.writerow(w_js_distance)
-    w2.writerow(w_peak_value)
-    w3.writerow(w_bottom_value)
-    w4.writerow(w_nucleu_loc)
-    w5.writerow(w_peak_bottom_value)
-    w6.writerow(w_peak_distance)
 f2.close()
 f3.close()
 f4.close()
