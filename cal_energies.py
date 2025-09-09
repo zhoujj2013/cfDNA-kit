@@ -204,7 +204,7 @@ for gene in tqdm(gene_info):
     energies = [np.sum(np.square(c)) for c in coeffs] # Calculate energy at each decomposition level (sum of squared coefficients)
     energies_dict[gene] = {}
     for index in range(len(energies)):
-        energies_dict[gene][index] = energies[index]
+        energies_dict[gene][f"db4_level{index}"] = energies[index]
 
 energies_pd = pd.DataFrame(energies_dict).T
 energies_pd.to_csv(save_path)
