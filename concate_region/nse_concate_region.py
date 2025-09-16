@@ -8,7 +8,7 @@ import argparse
 from tqdm import tqdm
 import csv
 from scipy.spatial.distance import jensenshannon
-
+from scipy.spatial.distance import euclidean
 
 parser = argparse.ArgumentParser(description="Process samples and BED file to generate RPM results")
 parser.add_argument(
@@ -29,16 +29,23 @@ parser.add_argument(
     required=True,
     help="Directory to save the output results"
 )
+parser.add_argument(
+    "--window",
+    type=int,
+    default=10,
+    help="Number of nucleosomes to include around the center position (e.g. window=10 means 10 nucleosomes around the center)"
+)
 args = parser.parse_args()
 
 sample_file = args.sample_file
 bed_file = args.bed_file
 save_dir = args.save_dir
-
+window = args.window
 
 # sample_file = '/mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/concate_region/samples.lst'
 # bed_file = '/mnt/dfc_data2/project/zhoujj/project/35cfdna/04PanCancer/ref/gencode.v45.annotation.tss.b5k.bed'
 # save_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/concate_region/pfe'
+# window = 10
 os.makedirs(save_dir, exist_ok=True)
 #%%
 def isSoftClipped(cigar):
@@ -214,10 +221,10 @@ for line in r:
     sample_dict[group][name] = path
 f.close()
 
-window = 1
-js_dict = {}
+
+distance_dict = {}
 for group in sample_dict:
-    js_dict[group] = {}
+    distance_dict[group] = {}
     for sample_name in sample_dict[group]:
 
         bam_file = sample_dict[group][sample_name]
@@ -229,18 +236,19 @@ for group in sample_dict:
             length = len(nucleu_loc)
             median_loc = int(length / 2)
             median_nucleu = nucleu_loc[median_loc - int(window / 2):median_loc + int(window / 2 + 0.5)]
-            nucleu_list.extend(median_nucleu)
+            nucleu_list.append(median_nucleu)
+        nucleu_list = np.mean(nucleu_list,axis=0)
         for i in nucleu_list:
             reference_nucleu_list.append(1)
-        js_distance = jensenshannon(nucleu_list, reference_nucleu_list)
+        reference_nucleu_list = np.array(reference_nucleu_list)
+        distance = euclidean(nucleu_list,reference_nucleu_list)
+        distance_dict[group][sample_name] = distance
 
-        js_dict[group][sample_name] = js_distance
-#%%
-for group in js_dict:
-    f = open(os.path.join(save_dir, group + '.js.tsv'),'w')
+for group in distance_dict:
+    f = open(os.path.join(save_dir, group + '.nse.tsv'),'w')
     w = csv.writer(f,delimiter='\t')
-    for sample_name in js_dict[group]:
-        w.writerow([sample_name, js_dict[group][sample_name]])
+    for sample_name in distance_dict[group]:
+        w.writerow([sample_name, distance_dict[group][sample_name]])
     f.close()
 
 
