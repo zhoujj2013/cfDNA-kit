@@ -14,54 +14,49 @@ import argparse
 import csv
 import os
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Process BAM file with BED regions and save results.")
-    parser.add_argument(
-        "--bam_file",
-        type=str,
-        required=True,
-        help="Path to the input BAM file (e.g., PL230613018.sorted.rmdup.bam)."
-    )
-    parser.add_argument(
-        "--bed_file",
-        type=str,
-        required=True,
-        help="Path to the BED file containing regions of interest."
-    )
-    parser.add_argument(
-        "--save_dir",
-        type=str,
-        required=True,
-        help="Directory where the output results will be saved."
-    )
-    parser.add_argument(
-        "--sample_name",
-        type=str,
-        required=True,
-        help="Sample name used for output file naming."
-    )
-    parser.add_argument(
-        "--windows",
-        type=int,
-        default=2000,
-        help="Window size for region analysis (default: 2000)."
-    )
-    return parser.parse_args()
-args = parse_args()
-bam_file = args.bam_file
+parser = argparse.ArgumentParser(description="Process samples and BED file to generate PFE results")
+parser.add_argument(
+    "--sample_file",
+    type=str,
+    required=True,
+    help="Path to the sample list file (one sample per line)"
+)
+parser.add_argument(
+    "--bed_file",
+    type=str,
+    required=True,
+    help="Path to the BED file with genomic regions"
+)
+parser.add_argument(
+    "--save_dir",
+    type=str,
+    required=True,
+    help="Directory to save the output results"
+)
+args = parser.parse_args()
+
+sample_file = args.sample_file
 bed_file = args.bed_file
 save_dir = args.save_dir
-sample_name = args.sample_name
-windows = args.windows
 
-# bam_file = '/mnt/dfc_data2/project/zhoujj/project/ngs.data/20250731.CNGB.JWZ.cfDNA.collected/PDAC/standard/PL230613018/01alignment/PL230613018.sorted.rmdup.bam'
+# sample_file = '/mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/concate_region/samples.lst'
 # bed_file = '/mnt/dfc_data2/project/zhoujj/project/35cfdna/04PanCancer/ref/gencode.v45.annotation.tss.b5k.bed'
 # save_dir = '/mnt/dfc_data2/project/linyusen/database/46_cfdna/concate_region/pfe'
-# sample_name = 'PL230613018'
-# windows = 2000
 
 os.makedirs(save_dir, exist_ok=True)
 
+
+f = open(sample_file)
+r = csv.reader(f,delimiter=' ')
+sample_dict = {}
+for line in r:
+    group = line[0]
+    name = line[1]
+    path = line[2]
+    if group not in sample_dict:
+        sample_dict[group] = {}
+    sample_dict[group][name] = path
+f.close()
 
 f = open(bed_file)
 r = csv.reader(f,delimiter='\t')
@@ -73,6 +68,7 @@ for line in r:
     gene = line[3]
     region_data.append([chr, start, end, gene])
 f.close()
+region_data = region_data[:100]
 #%%
 def extract_fragment_lengths(bamfile, chrom, start, end):
     """Extract fragment lengths from properly paired reads within region."""
@@ -110,35 +106,27 @@ def pfe_signal(sf, windows, chrid, start, end):
         entropy_val = compute_entropy(lengths,bins)
         entropy_vals.append(entropy_val)
     return entropy_vals
+
 lengths_dict = {}
-sf = pysam.AlignmentFile(bam_file)
-for chrid, start, end, gene in tqdm(region_data):
-    regions = split_region(start, end, windows)
-    bins = list(range(50, 400, 50))
-
-    for index,(sub_start, sub_end) in enumerate(regions):
-        if index not in lengths_dict:
-            lengths_dict[index] = []
-        lengths_dict[index].extend(extract_fragment_lengths(sf, chrid, sub_start, sub_end))
-entropy_dict = {}
-for index in lengths_dict:
-    bins = list(range(50, 400, 50))
-    entropy_dict[index] = compute_entropy(lengths_dict[index],bins)
+for group in sample_dict:
+    lengths_dict[group] = {}
+    for sample_name in sample_dict[group]:
+        lengths_dict[group][sample_name] = []
+        bam_file = sample_dict[group][sample_name]
+        sf = pysam.AlignmentFile(bam_file)
+        for chrid, start, end, gene in tqdm(region_data,desc=sample_name):
+            lengths_dict[group][sample_name].extend(extract_fragment_lengths(sf, chrid, start, end))
 #%%
-w1 = ['sample']
-for index in entropy_dict:
-    w1.append(index)
-w2 = [sample_name]
-for index in entropy_dict:
-    w2.append(index)
-
-header_save_file = os.path.join(save_dir, 'pfe_header.tsv')
-value_save_file = os.path.join(save_dir, 'pfe_value.tsv')
-f = open(header_save_file,'w')
-w = csv.writer(f)
-w.writerow(w1)
-f.close()
-f = open(value_save_file,'w')
-w = csv.writer(f)
-w.writerow(w2)
-f.close()
+bins = list(range(50, 400, 50))
+entropy_dict = {}
+for group in sample_dict:
+    entropy_dict[group] = {}
+    for sample_name in sample_dict[group]:
+        entropy_dict[group][sample_name] = compute_entropy(lengths_dict[group][sample_name],bins)
+#%%
+for group in entropy_dict:
+    f = open(os.path.join(save_dir, group + '.pfe.tsv'),'w')
+    w = csv.writer(f,delimiter='\t')
+    for sample_name in entropy_dict[group]:
+        w.writerow([sample_name, entropy_dict[group][sample_name]])
+    f.close()
