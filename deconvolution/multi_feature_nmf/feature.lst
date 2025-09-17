@@ -1,0 +1,4 @@
+fft /mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/NMF/multi_feature/example_data/PL230613013/fft.csv 7,8,9
+ndr /mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/NMF/multi_feature/example_data/PL230613013/ndr.csv 0
+nes /mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/NMF/multi_feature/example_data/PL230613013/nes.csv 0
+pfe /mnt/dfc_data2/project/linyusen/project/31_cfdna_wps/project/NMF/multi_feature/example_data/PL230613013/pfe.csv 0
